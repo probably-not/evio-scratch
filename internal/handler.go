@@ -1,7 +1,10 @@
 package internal
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/tidwall/evio"
 )
@@ -28,8 +31,31 @@ func NewHandler(loops, port int) evio.Events {
 	}
 
 	handler.Data = func(c evio.Conn, in []byte) ([]byte, evio.Action) {
+		if len(in) == 0 {
+			return nil, evio.None
+		}
+
 		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "received data", string(in))
-		return nil, evio.None
+
+		body := []byte("Hello there")
+
+		res := http.Response{
+			StatusCode:    200,
+			ProtoMajor:    1,
+			ProtoMinor:    1,
+			ContentLength: int64(len(body)),
+			Close:         false,
+			Body:          io.NopCloser(bytes.NewReader(body)),
+		}
+		buf := bytes.NewBuffer(nil)
+		err := res.Write(buf)
+		if err != nil {
+			fmt.Println("Uh oh, there was an error?", err)
+			return nil, evio.Close
+		}
+
+		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "sending data", buf.String())
+		return buf.Bytes(), evio.None
 	}
 
 	return handler

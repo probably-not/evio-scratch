@@ -22,7 +22,7 @@ func main() {
 
 	handler := internal.NewHandler(loops, port)
 
-	err := evio.Serve(handler, "tcp://:"+strconv.Itoa(port))
+	err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
 	if err != nil {
 		panic(err)
 	}
