@@ -3,7 +3,6 @@ package internal
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/tidwall/evio"
@@ -45,7 +44,7 @@ func NewHandler(loops, port int) evio.Events {
 			ProtoMinor:    1,
 			ContentLength: int64(len(body)),
 			Close:         false,
-			Body:          io.NopCloser(bytes.NewReader(body)),
+			Body:          closer(bytes.NewReader(body)),
 		}
 		buf := bytes.NewBuffer(nil)
 		err := res.Write(buf)
