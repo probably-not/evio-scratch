@@ -5,8 +5,12 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"os"
+	"os/signal"
 	"strconv"
+	"time"
 
 	"github.com/probably-not/evio-scratch/internal"
 	"github.com/tidwall/evio"
@@ -20,10 +24,18 @@ func main() {
 	flag.IntVar(&loops, "loops", 1, "num loops")
 	flag.Parse()
 
-	handler := internal.NewHandler(loops, port)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 
-	err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
-	if err != nil {
-		panic(err)
-	}
+	handler := internal.NewHandler(ctx, loops, port)
+
+	go func() {
+		err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	<-ctx.Done()
+	time.Sleep(time.Second * 10)
 }

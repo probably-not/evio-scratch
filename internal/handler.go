@@ -2,33 +2,60 @@ package internal
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/tidwall/evio"
 )
 
-func NewHandler(loops, port int) evio.Events {
+func NewHandler(ctx context.Context, loops, port int) evio.Events {
 	var handler evio.Events
 	handler.NumLoops = loops
 	handler.LoadBalance = evio.RoundRobin
 
+	// Serving fires on server up (one time)
 	handler.Serving = func(server evio.Server) evio.Action {
 		fmt.Println("evio server started with", server.NumLoops, "event loops on port", port)
-		return evio.None
+
+		select {
+		case <-ctx.Done():
+			fmt.Println("handler.Serving context is closed, we are shutting down")
+			return evio.Shutdown
+		default:
+			return evio.None
+		}
 	}
 
+	// Opened fires on opening new connections (per connection)
 	handler.Opened = func(c evio.Conn) ([]byte, evio.Options, evio.Action) {
 		fmt.Println("new connection opened between", c.LocalAddr(), "and", c.RemoteAddr())
 		c.SetContext(&evio.InputStream{})
-		return nil, evio.Options{}, evio.None
+
+		select {
+		case <-ctx.Done():
+			fmt.Println("handler.Opened context is closed, we are no longer accepting connections")
+			return nil, evio.Options{}, evio.Close
+		default:
+			return nil, evio.Options{}, evio.None
+		}
 	}
 
+	// Closed fires on closing connections (per connection)
 	handler.Closed = func(c evio.Conn, err error) evio.Action {
 		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "has been closed with error value", err)
-		return evio.None
+
+		select {
+		case <-ctx.Done():
+			fmt.Println("handler.Closed context is closed, we are no longer accepting connections")
+			return evio.Shutdown
+		default:
+			return evio.None
+		}
 	}
 
+	// Data fires on data being sent to a connection (per connection, per data frame read)
 	handler.Data = func(c evio.Conn, in []byte) ([]byte, evio.Action) {
 		if len(in) == 0 {
 			return nil, evio.None
@@ -53,44 +80,26 @@ func NewHandler(loops, port int) evio.Events {
 			return nil, evio.Close
 		}
 
-		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "sending data", buf.String())
-		return buf.Bytes(), evio.None
+		select {
+		case <-ctx.Done():
+			fmt.Println("handler.Data context is closed, we are no longer accepting connections")
+			return nil, evio.Close
+		default:
+			fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "sending data", buf.String())
+			return buf.Bytes(), evio.None
+		}
+	}
+
+	handler.Tick = func() (delay time.Duration, action evio.Action) {
+		select {
+		case <-ctx.Done():
+			fmt.Println("handler.Tick context is closed, we are no longer accepting connections")
+			return time.Second, evio.Shutdown
+		default:
+			fmt.Println("handler.Tick")
+			return time.Second, evio.None
+		}
 	}
 
 	return handler
 }
-
-/*
-	events.Data = func(c evio.Conn, in []byte) (out []byte, action evio.Action) {
-		if in == nil {
-			return
-		}
-		is := c.Context().(*evio.InputStream)
-		data := is.Begin(in)
-		if noparse && bytes.Contains(data, []byte("\r\n\r\n")) {
-			// for testing minimal single packet request -> response.
-			out = appendresp(nil, "200 OK", "", res)
-			return
-		}
-		// process the pipeline
-		var req request
-		for {
-			leftover, err := parsereq(data, &req)
-			if err != nil {
-				// bad thing happened
-				out = appendresp(out, "500 Error", "", err.Error()+"\n")
-				action = evio.Close
-				break
-			} else if len(leftover) == len(data) {
-				// request not ready, yet
-				break
-			}
-			// handle the request
-			req.remoteAddr = c.RemoteAddr().String()
-			out = appendhandle(out, &req)
-			data = leftover
-		}
-		is.End(data)
-		return
-	}
-*/
