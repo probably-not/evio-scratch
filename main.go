@@ -5,7 +5,11 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -34,6 +38,28 @@ func main() {
 		}
 	}()
 
+	testServer(10)
+
 	<-ctx.Done()
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 5)
+}
+
+func testServer(reqs int) error {
+	for i := 0; i < reqs; i++ {
+		j := i
+		body := fmt.Sprintf(`{"req": %d}`, j)
+		resp, err := http.Post("http://127.0.0.1:8080", "application/json", bytes.NewReader([]byte(body)))
+		if err != nil {
+			return err
+		}
+
+		r, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("Sent:", body, "Received:", string(r))
+	}
+
+	return nil
 }
