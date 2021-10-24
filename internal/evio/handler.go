@@ -4,13 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/probably-not/evio-scratch/internal/ioutil"
+	internalHttp "github.com/probably-not/evio-scratch/internal/http"
 	"github.com/tidwall/evio"
 )
 
@@ -83,22 +81,11 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 			return nil, evio.Close
 		}
 
-		body, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			fmt.Println("Uh oh, there was an error reading the request body?", err)
-			return nil, evio.Close
-		}
+		res := NewResponseWriter()
+		internalHttp.Echo(res, req)
 
-		res := http.Response{
-			StatusCode:    200,
-			ProtoMajor:    1,
-			ProtoMinor:    1,
-			ContentLength: int64(len(body)),
-			Close:         false,
-			Body:          ioutil.NopCloser(bytes.NewReader(body)),
-		}
 		buf := bytes.NewBuffer(nil)
-		err = res.Write(buf)
+		err = res.WriteToBuf(buf)
 		if err != nil {
 			fmt.Println("Uh oh, there was an error writing the response?", err)
 			return nil, evio.Close
