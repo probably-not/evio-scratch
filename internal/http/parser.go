@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"math"
-	"strconv"
 )
 
 var (
@@ -56,7 +55,7 @@ func IsRequestComplete(data []byte) (bool, error) {
 
 	// Get the Content-Length value as an integer
 	clenbytes := data[clIdx+contentLengthHeaderLength : clEndIdx]
-	clen, err := strconv.ParseInt(string(clenbytes), 10, 64)
+	clen, err := parseContentLength(clenbytes)
 	if err != nil {
 		return false, err
 	}
