@@ -184,6 +184,7 @@ var (
 	parseErr error
 )
 
+// Benchmark to test strconv vs a custom parsing function for parsing out content lengths.
 // BenchmarkParser_Strconv-16    	43783546	        28.33 ns/op	       7 B/op	       0 allocs/op
 func BenchmarkParser_Strconv(b *testing.B) {
 	b.ReportAllocs()
