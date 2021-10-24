@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/tidwall/evio"
@@ -131,10 +132,12 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 }
 
 var (
+	crlf = []byte{'\r', '\n'}
 	// Headers are completed when we have CRLF twice
-	headerTerminator    = []byte{'\r', '\n', '\r', '\n'}
-	contentLengthHeader = []byte("Content-Length: ")
-	errBadRequest       = errors.New("bad request")
+	headerTerminator          = append(crlf, crlf...)
+	contentLengthHeader       = []byte("Content-Length: ")
+	contentLengthHeaderLength = len(contentLengthHeader)
+	errBadRequest             = errors.New("bad request")
 )
 
 func isRequestComplete(data []byte) (bool, error) {
@@ -158,5 +161,30 @@ func isRequestComplete(data []byte) (bool, error) {
 		return false, errBadRequest
 	}
 
-	return false, nil
+	clEndIdx := bytes.Index(data[clIdx:], crlf)
+	// If for some reason we don't have the line terminator in the data then this is a problem...
+	if clEndIdx < 0 {
+		return false, errBadRequest
+	}
+	clEndIdx += clIdx
+
+	// If the end of the header terminator is equal to the length of the data,
+	// then this request has no body yet, so we wait for the entire body to arrive.
+	if htEndIdx >= len(data) {
+		return false, nil
+	}
+
+	// Get the Content-Length value as an integer
+	clenbytes := data[clIdx+contentLengthHeaderLength : clEndIdx]
+	clen, err := strconv.ParseInt(string(clenbytes), 10, 64)
+	if err != nil {
+		return false, err
+	}
+
+	// If the data after the header terminator ending index is less than the Content-Length value, then we are not done reading yet.
+	if len(data)-htEndIdx < int(clen) {
+		return false, nil
+	}
+
+	return true, nil
 }
