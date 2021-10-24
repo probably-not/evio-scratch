@@ -58,7 +58,10 @@ func testServer(reqs int) error {
 			return err
 		}
 
-		fmt.Println("Sent:", body, "Received:", string(r))
+		if !bytes.Equal([]byte(body), r) {
+			fmt.Println("Received unequal bytes!!!")
+			fmt.Println("Sent:", body, "Received:", string(r))
+		}
 	}
 
 	return nil
