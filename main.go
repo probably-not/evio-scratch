@@ -13,10 +13,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/panjf2000/gnet"
 	cancellation "github.com/probably-not/evio-scratch/internal/cancellation"
 	internalHttp "github.com/probably-not/evio-scratch/internal/http"
 	"github.com/probably-not/evio-scratch/internal/ioutil"
 	internalEvio "github.com/probably-not/evio-scratch/internal/loop/evio"
+	internalGnet "github.com/probably-not/evio-scratch/internal/loop/gnet"
 	"github.com/tidwall/evio"
 )
 
@@ -68,6 +70,14 @@ func main() {
 			}
 		}()
 	} else if useGnet {
+		handler := internalGnet.NewGnetLoop(ctx, loops, port, mux)
+
+		go func() {
+			err := gnet.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port), gnet.WithNumEventLoop(loops), gnet.WithLoadBalancing(gnet.RoundRobin))
+			if err != nil {
+				panic(err)
+			}
+		}()
 	}
 
 	testServer(10)
