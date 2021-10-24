@@ -14,8 +14,8 @@ import (
 
 type Engine struct {
 	handler evio.Events
-	port    int
 	binding string
+	port    int
 }
 
 func (e *Engine) ListenAndServe() error {

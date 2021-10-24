@@ -15,10 +15,11 @@ import (
 
 type Engine struct {
 	ctx         context.Context
-	loops, port int
 	httpHandler http.Handler
-	binding     string
 	*gnet.EventServer
+	binding string
+	loops   int
+	port    int
 }
 
 func NewEngine(ctx context.Context, loops, port int, httpHandler http.Handler) *Engine {
