@@ -10,32 +10,28 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
-	"github.com/panjf2000/gnet"
 	cancellation "github.com/probably-not/evio-scratch/internal/cancellation"
 	internalHttp "github.com/probably-not/evio-scratch/internal/http"
 	"github.com/probably-not/evio-scratch/internal/ioutil"
-	internalEvio "github.com/probably-not/evio-scratch/internal/loop/evio"
-	internalGnet "github.com/probably-not/evio-scratch/internal/loop/gnet"
-	"github.com/tidwall/evio"
+	"github.com/probably-not/evio-scratch/internal/loop"
 )
 
 var (
-	port, loops            int
-	help, useEvio, useGnet bool
+	port, loops int
+	help        bool
+	engineType  loop.EngineType
 )
 
 func init() {
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.IntVar(&loops, "loops", 1, "num loops")
 	flag.BoolVar(&help, "help", false, "show help message")
-	flag.BoolVar(&useEvio, "evio", true, "use the evio event loop")
-	flag.BoolVar(&useGnet, "gnet", false, "use the gnet event loop")
 }
 
 func main() {
+	flag.Var(&engineType, "engine", "engine type to use; can be one of stdlib, evio, or gnet")
 	flag.Parse()
 
 	if help {
@@ -43,14 +39,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if useEvio && useGnet {
-		fmt.Println("multiple event loops specified, please use only one of evio or gnet")
-		flag.Usage()
-		os.Exit(2)
-	}
-
-	if !useEvio && !useGnet {
-		fmt.Println("no event loops specified, please use one of evio or gnet")
+	if engineType == loop.UnknownEngineType {
+		fmt.Println("unknown engine type specified")
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -60,25 +50,14 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", internalHttp.Echo)
 
-	if useEvio {
-		handler := internalEvio.NewEvioLoop(ctx, loops, port, mux)
+	server := loop.NewServer(ctx, engineType, port, loops, mux)
 
-		go func() {
-			err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
-			if err != nil {
-				panic(err)
-			}
-		}()
-	} else if useGnet {
-		handler := internalGnet.NewGnetLoop(ctx, loops, port, mux)
-
-		go func() {
-			err := gnet.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port), gnet.WithNumEventLoop(loops), gnet.WithLoadBalancing(gnet.RoundRobin))
-			if err != nil {
-				panic(err)
-			}
-		}()
-	}
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	testServer(10)
 
