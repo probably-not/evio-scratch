@@ -12,7 +12,17 @@ import (
 	"github.com/tidwall/evio"
 )
 
-func NewEvioLoop(ctx context.Context, loops, port int, httpHandler http.Handler) evio.Events {
+type Engine struct {
+	handler evio.Events
+	port    int
+	binding string
+}
+
+func (e *Engine) ListenAndServe() error {
+	return evio.Serve(e.handler, fmt.Sprintf("tcp://%s:%d", e.binding, e.port))
+}
+
+func NewEngine(ctx context.Context, loops, port int, httpHandler http.Handler) *Engine {
 	var handler evio.Events
 	handler.NumLoops = loops
 	handler.LoadBalance = evio.RoundRobin
@@ -111,5 +121,8 @@ func NewEvioLoop(ctx context.Context, loops, port int, httpHandler http.Handler)
 		}
 	}
 
-	return handler
+	return &Engine{
+		handler: handler,
+		port:    port,
+	}
 }
