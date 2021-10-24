@@ -30,7 +30,11 @@ func main() {
 	flag.Parse()
 
 	ctx := cancellation.CreateCancelContext()
-	handler := internalEvio.NewHandler(ctx, loops, port, http.HandlerFunc(internalHttp.Echo))
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/echo", internalHttp.Echo)
+
+	handler := internalEvio.NewHandler(ctx, loops, port, mux)
 
 	go func() {
 		err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
@@ -49,7 +53,7 @@ func testServer(reqs int) error {
 	for i := 0; i < reqs; i++ {
 		j := i
 		body := fmt.Sprintf(`{"req": %d}`, j)
-		resp, err := http.Post("http://127.0.0.1:8080", "application/json", bytes.NewReader([]byte(body)))
+		resp, err := http.Post("http://127.0.0.1:8080/echo", "application/json", bytes.NewReader([]byte(body)))
 		if err != nil {
 			return err
 		}

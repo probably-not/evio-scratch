@@ -21,6 +21,7 @@ func NewResponseWriter() *responseWriter {
 		Response: &http.Response{
 			ProtoMajor: 1,
 			ProtoMinor: 1,
+			Header:     make(http.Header),
 		},
 	}
 }
