@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"errors"
+	"math"
 	"strconv"
 )
 
@@ -93,7 +94,9 @@ func parseContentLength(clen []byte) (int, error) {
 		if zeroes == 0 {
 			length += v
 		} else {
-			length += v * (zeroes * 10)
+			// The Pow10 can probably be done with a simple lookup table
+			// since 99% of the time we will probably be within 5 zeroes.
+			length += v * int(math.Pow10(zeroes))
 		}
 		zeroes--
 	}
@@ -101,6 +104,7 @@ func parseContentLength(clen []byte) (int, error) {
 	return length, nil
 }
 
+// TODO: Benchmark this function to see whether it would be better to make a map/slice or leave it as a switch
 func byteToIntJump(b byte) int {
 	switch b {
 	case '0':
