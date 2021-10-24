@@ -24,7 +24,6 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 
 		select {
 		case <-ctx.Done():
-			fmt.Println("handler.Serving context is closed, we are shutting down")
 			return evio.Shutdown
 		default:
 			return evio.None
@@ -33,12 +32,10 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 
 	// Opened fires on opening new connections (per connection)
 	handler.Opened = func(c evio.Conn) ([]byte, evio.Options, evio.Action) {
-		fmt.Println("new connection opened between", c.LocalAddr(), "and", c.RemoteAddr())
 		c.SetContext(&evio.InputStream{})
 
 		select {
 		case <-ctx.Done():
-			fmt.Println("handler.Opened context is closed, we are no longer accepting connections")
 			return nil, evio.Options{}, evio.Close
 		default:
 			return nil, evio.Options{}, evio.None
@@ -47,11 +44,12 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 
 	// Closed fires on closing connections (per connection)
 	handler.Closed = func(c evio.Conn, err error) evio.Action {
-		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "has been closed with error value", err)
+		if err != nil {
+			fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "has been closed with error value", err)
+		}
 
 		select {
 		case <-ctx.Done():
-			fmt.Println("handler.Closed context is closed, we are no longer accepting connections")
 			return evio.Shutdown
 		default:
 			return evio.None
@@ -63,8 +61,6 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 		if len(in) == 0 {
 			return nil, evio.None
 		}
-
-		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "received data", string(in))
 
 		stream := c.Context().(*evio.InputStream)
 		data := stream.Begin(in)
@@ -109,10 +105,8 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 
 		select {
 		case <-ctx.Done():
-			fmt.Println("handler.Data context is closed, we are no longer accepting connections")
 			return nil, evio.Close
 		default:
-			fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "sending data", buf.String())
 			return buf.Bytes(), evio.None
 		}
 	}
@@ -120,7 +114,6 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 	handler.Tick = func() (delay time.Duration, action evio.Action) {
 		select {
 		case <-ctx.Done():
-			fmt.Println("handler.Tick context is closed, we are no longer accepting connections")
 			return time.Second, evio.Shutdown
 		default:
 			return time.Second, evio.None
