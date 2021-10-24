@@ -20,29 +20,55 @@ import (
 	"github.com/tidwall/evio"
 )
 
-var port, loops int
+var (
+	port, loops            int
+	help, useEvio, useGnet bool
+)
 
 func init() {
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.IntVar(&loops, "loops", 1, "num loops")
+	flag.BoolVar(&help, "help", false, "show help message")
+	flag.BoolVar(&useEvio, "evio", true, "use the evio event loop")
+	flag.BoolVar(&useGnet, "gnet", false, "use the gnet event loop")
 }
 
 func main() {
 	flag.Parse()
+
+	if help {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if useEvio && useGnet {
+		fmt.Println("multiple event loops specified, please use only one of evio or gnet")
+		flag.Usage()
+		os.Exit(2)
+	}
+
+	if !useEvio && !useGnet {
+		fmt.Println("no event loops specified, please use one of evio or gnet")
+		flag.Usage()
+		os.Exit(2)
+	}
 
 	ctx := cancellation.CreateCancelContext()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", internalHttp.Echo)
 
-	handler := internalEvio.NewEvioLoop(ctx, loops, port, mux)
+	if useEvio {
+		handler := internalEvio.NewEvioLoop(ctx, loops, port, mux)
 
-	go func() {
-		err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
-		if err != nil {
-			panic(err)
-		}
-	}()
+		go func() {
+			err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
+			if err != nil {
+				panic(err)
+			}
+		}()
+	} else if useGnet {
+	}
 
 	testServer(10)
 
