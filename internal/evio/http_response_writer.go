@@ -12,8 +12,8 @@ import (
 // This should be further extended in the future to ensure we are writing the correct Headers, protocols, and flags
 // to the http.Response.
 type responseWriter struct {
-	buf []byte
 	*http.Response
+	buf []byte
 }
 
 func NewResponseWriter() *responseWriter {
