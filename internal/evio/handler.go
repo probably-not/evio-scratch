@@ -107,6 +107,9 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 		case <-ctx.Done():
 			return nil, evio.Close
 		default:
+			// Reset the connection context to an empty input stream once we have completed a full request in order to
+			// ensure that the next request starts empty.
+			c.SetContext(&evio.InputStream{})
 			return buf.Bytes(), evio.None
 		}
 	}
