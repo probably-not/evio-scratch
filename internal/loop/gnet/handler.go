@@ -13,15 +13,16 @@ import (
 	"github.com/tidwall/evio"
 )
 
-type GnetHandler struct {
+type Engine struct {
 	ctx         context.Context
 	loops, port int
 	httpHandler http.Handler
+	binding     string
 	*gnet.EventServer
 }
 
-func NewGnetLoop(ctx context.Context, loops, port int, httpHandler http.Handler) *GnetHandler {
-	handler := GnetHandler{
+func NewEngine(ctx context.Context, loops, port int, httpHandler http.Handler) *Engine {
+	handler := Engine{
 		ctx:         ctx,
 		loops:       loops,
 		port:        port,
@@ -32,12 +33,16 @@ func NewGnetLoop(ctx context.Context, loops, port int, httpHandler http.Handler)
 	return &handler
 }
 
+func (e *Engine) ListenAndServe() error {
+	return gnet.Serve(e, fmt.Sprintf("tcp://%s:%d", e.binding, e.port), gnet.WithNumEventLoop(e.loops), gnet.WithLoadBalancing(gnet.RoundRobin))
+}
+
 // OnInitComplete fires on server up (one time)
-func (h *GnetHandler) OnInitComplete(server gnet.Server) gnet.Action {
-	fmt.Println("gnet server started with", server.NumEventLoop, "event loops on address", h.port)
+func (e *Engine) OnInitComplete(server gnet.Server) gnet.Action {
+	fmt.Println("gnet server started with", server.NumEventLoop, "event loops on address", e.port)
 
 	select {
-	case <-h.ctx.Done():
+	case <-e.ctx.Done():
 		return gnet.Shutdown
 	default:
 		return gnet.None
@@ -45,11 +50,11 @@ func (h *GnetHandler) OnInitComplete(server gnet.Server) gnet.Action {
 }
 
 // OnOpened fires on opening new connections (per connection)
-func (h *GnetHandler) OnOpened(c gnet.Conn) ([]byte, gnet.Action) {
+func (e *Engine) OnOpened(c gnet.Conn) ([]byte, gnet.Action) {
 	c.SetContext(&evio.InputStream{})
 
 	select {
-	case <-h.ctx.Done():
+	case <-e.ctx.Done():
 		return nil, gnet.Close
 	default:
 		return nil, gnet.None
@@ -57,13 +62,13 @@ func (h *GnetHandler) OnOpened(c gnet.Conn) ([]byte, gnet.Action) {
 }
 
 // OnClosed fires on closing connections (per connection)
-func (h *GnetHandler) OnClosed(c gnet.Conn, err error) gnet.Action {
+func (e *Engine) OnClosed(c gnet.Conn, err error) gnet.Action {
 	if err != nil {
 		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "has been closed with error value", err)
 	}
 
 	select {
-	case <-h.ctx.Done():
+	case <-e.ctx.Done():
 		return gnet.Shutdown
 	default:
 		return gnet.None
@@ -71,7 +76,7 @@ func (h *GnetHandler) OnClosed(c gnet.Conn, err error) gnet.Action {
 }
 
 // React fires on data being sent to a connection (per connection, per data frame read)
-func (h *GnetHandler) React(in []byte, c gnet.Conn) ([]byte, gnet.Action) {
+func (e *Engine) React(in []byte, c gnet.Conn) ([]byte, gnet.Action) {
 	if len(in) == 0 {
 		return nil, gnet.None
 	}
@@ -97,7 +102,7 @@ func (h *GnetHandler) React(in []byte, c gnet.Conn) ([]byte, gnet.Action) {
 	}
 
 	res := internalHttp.NewResponseWriter()
-	h.httpHandler.ServeHTTP(res, req)
+	e.httpHandler.ServeHTTP(res, req)
 
 	buf := bytes.NewBuffer(nil)
 	err = res.WriteToBuf(buf)
@@ -107,7 +112,7 @@ func (h *GnetHandler) React(in []byte, c gnet.Conn) ([]byte, gnet.Action) {
 	}
 
 	select {
-	case <-h.ctx.Done():
+	case <-e.ctx.Done():
 		return nil, gnet.Close
 	default:
 		// Reset the connection context to an empty input stream once we have completed a full request in order to
@@ -117,9 +122,9 @@ func (h *GnetHandler) React(in []byte, c gnet.Conn) ([]byte, gnet.Action) {
 	}
 }
 
-func (h *GnetHandler) Tick() (delay time.Duration, action gnet.Action) {
+func (e *Engine) Tick() (delay time.Duration, action gnet.Action) {
 	select {
-	case <-h.ctx.Done():
+	case <-e.ctx.Done():
 		return time.Second, gnet.Shutdown
 	default:
 		return time.Second, gnet.None
