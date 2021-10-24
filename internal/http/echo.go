@@ -15,5 +15,4 @@ func Echo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(b)
-	w.WriteHeader(http.StatusOK)
 }
