@@ -1,4 +1,4 @@
-package evio
+package loop
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ var (
 // If the entire request has been read, we return true, and if there is still data to be read, we
 // return false. An error is returned if the request is malformed, or if the request is streaming data
 // using the Transfer-Encoding: chunked encoding, which we are not supporting as of this time.
-func isRequestComplete(data []byte) (bool, error) {
+func IsRequestComplete(data []byte) (bool, error) {
 	// If we haven't gotten to the header terminator, then the request hasn't been fully read yet
 	htIdx := bytes.Index(data, headerTerminator)
 	if htIdx < 0 {

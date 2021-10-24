@@ -9,6 +9,7 @@ import (
 	"time"
 
 	internalHttp "github.com/probably-not/evio-scratch/internal/http"
+	"github.com/probably-not/evio-scratch/internal/loop"
 	"github.com/tidwall/evio"
 )
 
@@ -64,7 +65,7 @@ func NewEvioLoop(ctx context.Context, loops, port int, httpHandler http.Handler)
 		stream := c.Context().(*evio.InputStream)
 		data := stream.Begin(in)
 
-		complete, err := isRequestComplete(data)
+		complete, err := loop.IsRequestComplete(data)
 		if err != nil {
 			fmt.Println("Uh oh, there was an error checking completeness?", err)
 			return nil, evio.Close
