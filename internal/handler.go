@@ -1,9 +1,12 @@
 package internal
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -63,7 +66,31 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 
 		fmt.Println("connection between", c.LocalAddr(), "and", c.RemoteAddr(), "received data", string(in))
 
-		body := []byte("Hello there")
+		stream := c.Context().(*evio.InputStream)
+		data := stream.Begin(in)
+
+		complete, err := isRequestComplete(data)
+		if err != nil {
+			fmt.Println("Uh oh, there was an error checking completeness?", err)
+			return nil, evio.Close
+		}
+
+		stream.End(data)
+		if !complete {
+			return nil, evio.None
+		}
+
+		req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(data)))
+		if err != nil {
+			fmt.Println("Uh oh, there was an error creating the request?", err)
+			return nil, evio.Close
+		}
+
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			fmt.Println("Uh oh, there was an error reading the request body?", err)
+			return nil, evio.Close
+		}
 
 		res := http.Response{
 			StatusCode:    200,
@@ -74,9 +101,9 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 			Body:          closer(bytes.NewReader(body)),
 		}
 		buf := bytes.NewBuffer(nil)
-		err := res.Write(buf)
+		err = res.Write(buf)
 		if err != nil {
-			fmt.Println("Uh oh, there was an error?", err)
+			fmt.Println("Uh oh, there was an error writing the response?", err)
 			return nil, evio.Close
 		}
 
@@ -102,4 +129,35 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 	}
 
 	return handler
+}
+
+var (
+	// Headers are completed when we have CRLF twice
+	headerTerminator    = []byte{'\r', '\n', '\r', '\n'}
+	contentLengthHeader = []byte("Content-Length: ")
+	errBadRequest       = errors.New("bad request")
+)
+
+func isRequestComplete(data []byte) (bool, error) {
+	// If we haven't gotten to the header terminator, then the request hasn't been fully read yet
+	htIdx := bytes.Index(data, headerTerminator)
+	if htIdx < 0 {
+		return false, nil
+	}
+	htEndIdx := htIdx + 4
+
+	clIdx := bytes.Index(data, contentLengthHeader)
+	if clIdx < 0 {
+		// If the end of the header terminator is equal to the length of the data,
+		// then this request has no body, and is complete.
+		if htEndIdx == len(data) {
+			return true, nil
+		}
+
+		// If we have not received a Content-Length Header in all of the headers, and there is a body, this is a bad request.
+		// We don't accept Transfer-Encoding: chunked for now, and Content-Length is required for when there is a body.
+		return false, errBadRequest
+	}
+
+	return false, nil
 }
