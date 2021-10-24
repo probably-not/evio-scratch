@@ -12,10 +12,10 @@ import (
 	"os"
 	"time"
 
-	cancellation "github.com/probably-not/evio-scratch/internal/cancellation"
-	internalHttp "github.com/probably-not/evio-scratch/internal/http"
-	"github.com/probably-not/evio-scratch/internal/ioutil"
-	"github.com/probably-not/evio-scratch/internal/loop"
+	cancellation "github.com/probably-not/server-scratch/internal/cancellation"
+	internalHttp "github.com/probably-not/server-scratch/internal/http"
+	"github.com/probably-not/server-scratch/internal/ioutil"
+	"github.com/probably-not/server-scratch/internal/loop"
 )
 
 var (

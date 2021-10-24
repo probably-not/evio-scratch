@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/probably-not/evio-scratch/internal/ioutil"
+	"github.com/probably-not/server-scratch/internal/ioutil"
 )
 
 // A very basic naive http.ResponseWriter implementation that attempts to write to an underlying http.Response.

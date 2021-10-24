@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	internalHttp "github.com/probably-not/evio-scratch/internal/http"
+	internalHttp "github.com/probably-not/server-scratch/internal/http"
 	"github.com/tidwall/evio"
 )
 

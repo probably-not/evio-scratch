@@ -1,4 +1,4 @@
-module github.com/probably-not/evio-scratch
+module github.com/probably-not/server-scratch
 
 go 1.17
 

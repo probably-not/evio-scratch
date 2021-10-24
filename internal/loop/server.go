@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/probably-not/evio-scratch/internal/loop/evio"
-	"github.com/probably-not/evio-scratch/internal/loop/gnet"
-	"github.com/probably-not/evio-scratch/internal/loop/stdlib"
+	"github.com/probably-not/server-scratch/internal/loop/evio"
+	"github.com/probably-not/server-scratch/internal/loop/gnet"
+	"github.com/probably-not/server-scratch/internal/loop/stdlib"
 )
 
 type Server struct {

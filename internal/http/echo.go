@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/probably-not/evio-scratch/internal/ioutil"
+	"github.com/probably-not/server-scratch/internal/ioutil"
 )
 
 func Echo(w http.ResponseWriter, r *http.Request) {

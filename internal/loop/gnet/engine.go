@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/panjf2000/gnet"
-	internalHttp "github.com/probably-not/evio-scratch/internal/http"
+	internalHttp "github.com/probably-not/server-scratch/internal/http"
 	"github.com/tidwall/evio"
 )
 

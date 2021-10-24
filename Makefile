@@ -2,7 +2,7 @@ GO := go
 DOCKER := docker
 TAG?=$(shell git rev-parse HEAD)
 REGISTRY?=probablynot
-IMAGE=evio-scratch
+IMAGE=server-scratch
 GOOS=linux
 
 all: build
@@ -18,6 +18,6 @@ push:
 
 bin:
 	@echo ">> building local binary"
-	CGO_ENABLED=0 GOOS=${GOOS} go build -a -ldflags '-extldflags "-static"' -o evio-scratch
+	CGO_ENABLED=0 GOOS=${GOOS} go build -a -ldflags '-extldflags "-static"' -o server-scratch
 
 .PHONY: all build push bin
