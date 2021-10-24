@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/probably-not/evio-scratch/internal"
+	internalEvio "github.com/probably-not/evio-scratch/internal/evio"
 	"github.com/tidwall/evio"
 )
 
@@ -27,7 +27,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	handler := internal.NewHandler(ctx, loops, port)
+	handler := internalEvio.NewHandler(ctx, loops, port)
 
 	go func() {
 		err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
