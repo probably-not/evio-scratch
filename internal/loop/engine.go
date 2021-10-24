@@ -1,5 +1,10 @@
 package loop
 
+import (
+	"errors"
+	"strings"
+)
+
 type Engine interface {
 	ListenAndServe() error
 }
@@ -10,8 +15,10 @@ const (
 	Stdlib EngineType = 1 << iota
 	Evio
 	Gnet
-	ErrUnknownEngineType
+	UnknownEngineType
 )
+
+var ErrUnknownEngineType = errors.New("unknown engine type")
 
 func (et EngineType) String() string {
 	switch et {
@@ -21,9 +28,28 @@ func (et EngineType) String() string {
 		return "Evio"
 	case Gnet:
 		return "Gnet"
-	case ErrUnknownEngineType:
-		return "ErrUnknownEngineType"
+	case UnknownEngineType:
+		return "UnknownEngineType"
 	default:
 		return ""
 	}
+}
+
+func (et *EngineType) Set(value string) error {
+	switch strings.ToLower(value) {
+	case "evio":
+		*et = Evio
+	case "gnet":
+		*et = Gnet
+	case "stdlib":
+		*et = Stdlib
+	default:
+		*et = UnknownEngineType
+	}
+
+	if *et == UnknownEngineType {
+		return ErrUnknownEngineType
+	}
+
+	return nil
 }
