@@ -11,3 +11,7 @@ import (
 func closer(r io.Reader) io.ReadCloser {
 	return ioutil.NopCloser(r)
 }
+
+func readall(r io.Reader) ([]byte, error) {
+	return ioutil.ReadAll(r)
+}

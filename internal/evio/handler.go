@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -87,7 +86,7 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 			return nil, evio.Close
 		}
 
-		body, err := io.ReadAll(req.Body)
+		body, err := readall(req.Body)
 		if err != nil {
 			fmt.Println("Uh oh, there was an error reading the request body?", err)
 			return nil, evio.Close
