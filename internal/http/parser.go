@@ -74,6 +74,11 @@ func parseContentLength(clen []byte) (int64, error) {
 		return -1, errBadRequest
 	}
 
+	// If we have more than 1 but the first digit is a 0, that's a bad request
+	if len(clen) > 1 && clen[0] == '0' {
+		return -1, errBadRequest
+	}
+
 	// Start at the highest order of magnitude
 	zeroes := len(clen)
 	length := int64(0)
