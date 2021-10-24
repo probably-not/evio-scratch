@@ -76,9 +76,12 @@ func parseContentLength(clen []byte) (int64, error) {
 	}
 
 	// Start at the highest order of magnitude
-	zeroes := len(clen) - 1
+	zeroes := len(clen)
 	length := int64(0)
 	for i := 0; i < len(clen); i++ {
+		// Start by decrementing to get the correct magnitude per loop
+		zeroes--
+
 		// Error possibilities
 		if clen[i] < '0' || clen[i] > '9' {
 			return -1, errBadRequest
@@ -94,15 +97,24 @@ func parseContentLength(clen []byte) (int64, error) {
 		// Add the magnitude to the length
 		if zeroes == 0 {
 			length += v
-		} else {
-			// The Pow10 can probably be done with a simple lookup table
-			// since 99% of the time we will probably be within 5 zeroes.
-			length += v * int64(math.Pow10(zeroes))
+			continue
 		}
-		zeroes--
+
+		// The Pow10 can probably be done with a simple lookup table
+		// since 99% of the time we will probably be within 5 zeroes.
+		if zeroes < 19 {
+			length += v * pow10LookupTable[zeroes]
+			continue
+		}
+		length += v * int64(math.Pow10(zeroes))
 	}
 
 	return length, nil
+}
+
+var pow10LookupTable = [...]int64{
+	1e00, 1e01, 1e02, 1e03, 1e04, 1e05, 1e06, 1e07, 1e08, 1e09,
+	1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18,
 }
 
 var byteToIntSlice = []int64{
