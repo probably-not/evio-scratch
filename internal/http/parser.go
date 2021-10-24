@@ -83,7 +83,8 @@ func parseContentLength(clen []byte) (int64, error) {
 		if clen[i] < '0' || clen[i] > '9' {
 			return -1, errBadRequest
 		}
-		v := byteToIntJump(clen[i])
+		// v := byteToIntJump(clen[i])
+		v := byteToIntSlice[clen[i]]
 
 		// Error possibilities
 		if v < 0 {
@@ -104,7 +105,19 @@ func parseContentLength(clen []byte) (int64, error) {
 	return length, nil
 }
 
-// TODO: Benchmark this function to see whether it would be better to make a map/slice or leave it as a switch
+var byteToIntSlice = []int64{
+	'0': 0,
+	'1': 1,
+	'2': 2,
+	'3': 3,
+	'4': 4,
+	'5': 5,
+	'6': 6,
+	'7': 7,
+	'8': 8,
+	'9': 9,
+}
+
 func byteToIntJump(b byte) int64 {
 	switch b {
 	case '0':
