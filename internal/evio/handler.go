@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/probably-not/evio-scratch/internal/ioutil"
 	"github.com/tidwall/evio"
 )
 
@@ -82,7 +83,7 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 			return nil, evio.Close
 		}
 
-		body, err := readall(req.Body)
+		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			fmt.Println("Uh oh, there was an error reading the request body?", err)
 			return nil, evio.Close
@@ -94,7 +95,7 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 			ProtoMinor:    1,
 			ContentLength: int64(len(body)),
 			Close:         false,
-			Body:          closer(bytes.NewReader(body)),
+			Body:          ioutil.NopCloser(bytes.NewReader(body)),
 		}
 		buf := bytes.NewBuffer(nil)
 		err = res.Write(buf)

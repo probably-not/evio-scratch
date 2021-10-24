@@ -1,17 +1,17 @@
 //go:build !go1.16
 // +build !go1.16
 
-package evio
+package ioutil
 
 import (
 	"io"
 	"io/ioutil"
 )
 
-func closer(r io.Reader) io.ReadCloser {
+func NopCloser(r io.Reader) io.ReadCloser {
 	return ioutil.NopCloser(r)
 }
 
-func readall(r io.Reader) ([]byte, error) {
+func ReadAll(r io.Reader) ([]byte, error) {
 	return ioutil.ReadAll(r)
 }

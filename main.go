@@ -8,13 +8,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
 	cancellation "github.com/probably-not/evio-scratch/internal/cancellation"
 	internalEvio "github.com/probably-not/evio-scratch/internal/evio"
+	"github.com/probably-not/evio-scratch/internal/ioutil"
 	"github.com/tidwall/evio"
 )
 
