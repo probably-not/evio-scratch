@@ -8,7 +8,35 @@ import (
 	"testing"
 )
 
-var testCases = []struct {
+/*
+----------------------------------------------------------------------------------------------------
+Testing and Benchmarking IsRequestComplete(data []byte) (bool, error)
+----------------------------------------------------------------------------------------------------
+*/
+
+// TODO: Tests!
+func TestParser_IsRequestComplete(t *testing.T) {
+	testCases := []struct {
+		desc string
+	}{
+		{
+			desc: "",
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+
+		})
+	}
+}
+
+/*
+----------------------------------------------------------------------------------------------------
+Testing and Benchmarking parseContentLength(clen []byte) (int64, error)
+----------------------------------------------------------------------------------------------------
+*/
+
+var parseContentLengthTestCases = []struct {
 	expectedErr error
 	desc        string
 	input       []byte
@@ -144,7 +172,7 @@ var testCases = []struct {
 }
 
 func TestParser_ParseContentLength(t *testing.T) {
-	for _, tC := range testCases {
+	for _, tC := range parseContentLengthTestCases {
 		t.Run(tC.desc, func(subT *testing.T) {
 			got, err := parseContentLength(tC.input)
 			if (err != nil) != tC.wantErr {
@@ -190,7 +218,7 @@ func BenchmarkParser_Strconv(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		l, err := strconv.ParseInt(string(testCases[i%len(testCases)].input), 10, 64)
+		l, err := strconv.ParseInt(string(parseContentLengthTestCases[i%len(parseContentLengthTestCases)].input), 10, 64)
 		if err != nil {
 			parseErr = err
 		}
@@ -210,7 +238,7 @@ func BenchmarkParser_ParseContentLength(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		l, err := parseContentLength(testCases[i%len(testCases)].input)
+		l, err := parseContentLength(parseContentLengthTestCases[i%len(parseContentLengthTestCases)].input)
 		if err != nil {
 			parseErr = err
 		}
