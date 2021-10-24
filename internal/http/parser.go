@@ -85,7 +85,7 @@ func parseContentLength(clen []byte) (int64, error) {
 		if clen[i] < '0' || clen[i] > '9' {
 			return -1, errBadRequest
 		}
-		// v := byteToIntJump(clen[i])
+
 		v := byteToIntSlice[clen[i]]
 
 		// Error possibilities
