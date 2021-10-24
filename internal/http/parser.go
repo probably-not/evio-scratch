@@ -69,7 +69,7 @@ func IsRequestComplete(data []byte) (bool, error) {
 	return true, nil
 }
 
-func parseContentLength(clen []byte) (int, error) {
+func parseContentLength(clen []byte) (int64, error) {
 	// If we are lower than 0 or greater than 9, then we aren't an integer.
 	if clen[0] < '0' || clen[0] > '9' {
 		return -1, errBadRequest
@@ -77,7 +77,7 @@ func parseContentLength(clen []byte) (int, error) {
 
 	// Start at the highest order of magnitude
 	zeroes := len(clen) - 1
-	length := 0
+	length := int64(0)
 	for i := 0; i < len(clen); i++ {
 		// Error possibilities
 		if clen[i] < '0' || clen[i] > '9' {
@@ -96,7 +96,7 @@ func parseContentLength(clen []byte) (int, error) {
 		} else {
 			// The Pow10 can probably be done with a simple lookup table
 			// since 99% of the time we will probably be within 5 zeroes.
-			length += v * int(math.Pow10(zeroes))
+			length += v * int64(math.Pow10(zeroes))
 		}
 		zeroes--
 	}
@@ -105,7 +105,7 @@ func parseContentLength(clen []byte) (int, error) {
 }
 
 // TODO: Benchmark this function to see whether it would be better to make a map/slice or leave it as a switch
-func byteToIntJump(b byte) int {
+func byteToIntJump(b byte) int64 {
 	switch b {
 	case '0':
 		return 0
