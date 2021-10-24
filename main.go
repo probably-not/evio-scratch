@@ -14,12 +14,14 @@ import (
 	"github.com/tidwall/evio"
 )
 
-func main() {
-	var port int
-	var loops int
+var port, loops int
 
+func init() {
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.IntVar(&loops, "loops", 1, "num loops")
+}
+
+func main() {
 	flag.Parse()
 
 	ctx := cancellation.CreateCancelContext()
