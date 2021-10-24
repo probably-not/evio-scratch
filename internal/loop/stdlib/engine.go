@@ -10,6 +10,8 @@ type Stdlib struct {
 }
 
 func NewStdlib(port int, handler http.Handler) *Stdlib {
+	fmt.Println("stdlib server started on address", port)
+
 	return &Stdlib{
 		Server: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
