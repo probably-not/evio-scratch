@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	internalHttp "github.com/probably-not/evio-scratch/internal/http"
 	"github.com/tidwall/evio"
 )
 
-func NewHandler(ctx context.Context, loops, port int) evio.Events {
+func NewHandler(ctx context.Context, loops, port int, httpHandler http.Handler) evio.Events {
 	var handler evio.Events
 	handler.NumLoops = loops
 	handler.LoadBalance = evio.RoundRobin
@@ -82,7 +81,7 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 		}
 
 		res := NewResponseWriter()
-		internalHttp.Echo(res, req)
+		httpHandler.ServeHTTP(res, req)
 
 		buf := bytes.NewBuffer(nil)
 		err = res.WriteToBuf(buf)

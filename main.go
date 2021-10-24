@@ -14,6 +14,7 @@ import (
 
 	cancellation "github.com/probably-not/evio-scratch/internal/cancellation"
 	internalEvio "github.com/probably-not/evio-scratch/internal/evio"
+	internalHttp "github.com/probably-not/evio-scratch/internal/http"
 	"github.com/probably-not/evio-scratch/internal/ioutil"
 	"github.com/tidwall/evio"
 )
@@ -29,7 +30,7 @@ func main() {
 	flag.Parse()
 
 	ctx := cancellation.CreateCancelContext()
-	handler := internalEvio.NewHandler(ctx, loops, port)
+	handler := internalEvio.NewHandler(ctx, loops, port, http.HandlerFunc(internalHttp.Echo))
 
 	go func() {
 		err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
