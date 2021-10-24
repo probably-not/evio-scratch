@@ -10,7 +10,6 @@ import (
 
 	"github.com/panjf2000/gnet"
 	internalHttp "github.com/probably-not/evio-scratch/internal/http"
-	"github.com/probably-not/evio-scratch/internal/loop"
 	"github.com/tidwall/evio"
 )
 
@@ -80,7 +79,7 @@ func (h *GnetHandler) React(in []byte, c gnet.Conn) ([]byte, gnet.Action) {
 	stream := c.Context().(*evio.InputStream)
 	data := stream.Begin(in)
 
-	complete, err := loop.IsRequestComplete(data)
+	complete, err := internalHttp.IsRequestComplete(data)
 	if err != nil {
 		fmt.Println("Uh oh, there was an error checking completeness?", err)
 		return nil, gnet.Close
