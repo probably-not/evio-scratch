@@ -18,9 +18,9 @@ func NewServer(ctx context.Context, engineType EngineType, port, loops int, hand
 	var engine Engine
 	switch engineType {
 	case Evio:
-		engine = evio.NewEvioLoop(ctx, loops, port, handler)
+		engine = evio.NewEngine(ctx, loops, port, handler)
 	case Gnet:
-		engine = gnet.NewGnetLoop(ctx, loops, port, handler)
+		engine = gnet.NewEngine(ctx, loops, port, handler)
 	default:
 		engine = stdlib.NewStdlib(port, handler)
 	}
