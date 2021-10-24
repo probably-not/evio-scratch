@@ -35,7 +35,7 @@ func NewGnetLoop(ctx context.Context, loops, port int, httpHandler http.Handler)
 
 // OnInitComplete fires on server up (one time)
 func (h *GnetHandler) OnInitComplete(server gnet.Server) gnet.Action {
-	fmt.Println("evio server started with", server.NumEventLoop, "event loops on address", h.port)
+	fmt.Println("gnet server started with", server.NumEventLoop, "event loops on address", h.port)
 
 	select {
 	case <-h.ctx.Done():
