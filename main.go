@@ -50,7 +50,10 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", internalHttp.Echo)
 
-	server := loop.NewServer(ctx, engineType, port, loops, mux)
+	server, err := loop.NewServer(ctx, engineType, port, loops, mux)
+	if err != nil {
+		panic(err)
+	}
 
 	go func() {
 		err := server.ListenAndServe()

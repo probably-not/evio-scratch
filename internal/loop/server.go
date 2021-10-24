@@ -14,21 +14,25 @@ type Server struct {
 	engine Engine
 }
 
-func NewServer(ctx context.Context, engineType EngineType, port, loops int, handler http.Handler) *Server {
+func NewServer(ctx context.Context, engineType EngineType, port, loops int, handler http.Handler) (*Server, error) {
 	var engine Engine
 	switch engineType {
 	case Evio:
 		engine = evio.NewEngine(ctx, loops, port, handler)
 	case Gnet:
 		engine = gnet.NewEngine(ctx, loops, port, handler)
-	default:
+	case Stdlib:
 		engine = stdlib.NewStdlib(port, handler)
+	case UnknownEngineType:
+		return nil, ErrUnknownEngineType
+	default:
+		return nil, ErrUnknownEngineType
 	}
 
 	return &Server{
 		ctx:    ctx,
 		engine: engine,
-	}
+	}, nil
 }
 
 func (s *Server) ListenAndServe() error {
