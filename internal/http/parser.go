@@ -118,6 +118,8 @@ var byteToIntSlice = []int64{
 	'9': 9,
 }
 
+// Looks like the lookup by slice is approximately 1ns fast constantly, so we will use the `byteToIntSlice` table.
+// This will need to be continuously benchmarked to ensure that if it changes we update the code.
 func byteToIntJump(b byte) int64 {
 	switch b {
 	case '0':
