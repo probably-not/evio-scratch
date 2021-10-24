@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -46,7 +47,16 @@ func main() {
 	testServer(10)
 
 	<-ctx.Done()
-	time.Sleep(time.Second * 5)
+	fmt.Println("Received exit signal, waiting 5 seconds to close gracefully")
+
+	i := 0
+	for range time.Tick(time.Second) {
+		fmt.Print(".")
+		i++
+		if i >= 5 {
+			os.Exit(0)
+		}
+	}
 }
 
 func testServer(reqs int) error {
