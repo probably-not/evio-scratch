@@ -13,9 +13,9 @@ import (
 	"time"
 
 	cancellation "github.com/probably-not/evio-scratch/internal/cancellation"
-	internalEvio "github.com/probably-not/evio-scratch/internal/evio"
 	internalHttp "github.com/probably-not/evio-scratch/internal/http"
 	"github.com/probably-not/evio-scratch/internal/ioutil"
+	internalEvio "github.com/probably-not/evio-scratch/internal/loop/evio"
 	"github.com/tidwall/evio"
 )
 
@@ -34,7 +34,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", internalHttp.Echo)
 
-	handler := internalEvio.NewHandler(ctx, loops, port, mux)
+	handler := internalEvio.NewEvioLoop(ctx, loops, port, mux)
 
 	go func() {
 		err := evio.Serve(handler, "tcp://127.0.0.1:"+strconv.Itoa(port))
