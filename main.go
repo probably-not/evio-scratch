@@ -39,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if engineType == loop.UnknownEngineType {
+	if engineType < 1 || engineType > 8 || engineType == loop.UnknownEngineType {
 		fmt.Println("unknown engine type specified")
 		flag.Usage()
 		os.Exit(2)
