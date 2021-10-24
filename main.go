@@ -5,13 +5,11 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"os"
-	"os/signal"
 	"strconv"
 	"time"
 
+	cancellation "github.com/probably-not/evio-scratch/internal/cancellation"
 	internalEvio "github.com/probably-not/evio-scratch/internal/evio"
 	"github.com/tidwall/evio"
 )
@@ -24,9 +22,7 @@ func main() {
 	flag.IntVar(&loops, "loops", 1, "num loops")
 	flag.Parse()
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer stop()
-
+	ctx := cancellation.CreateCancelContext()
 	handler := internalEvio.NewHandler(ctx, loops, port)
 
 	go func() {
