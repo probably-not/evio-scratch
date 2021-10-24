@@ -123,7 +123,6 @@ func NewHandler(ctx context.Context, loops, port int) evio.Events {
 			fmt.Println("handler.Tick context is closed, we are no longer accepting connections")
 			return time.Second, evio.Shutdown
 		default:
-			fmt.Println("handler.Tick")
 			return time.Second, evio.None
 		}
 	}
