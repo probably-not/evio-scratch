@@ -85,7 +85,7 @@ func parseContentLength(clen []byte) (int, error) {
 		v := byteToIntJump(clen[i])
 
 		// Error possibilities
-		if v <= 0 {
+		if v < 0 {
 			return -1, errBadRequest
 		}
 
