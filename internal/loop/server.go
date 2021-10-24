@@ -30,3 +30,7 @@ func NewServer(ctx context.Context, engineType EngineType, port, loops int, hand
 		engine: engine,
 	}
 }
+
+func (s *Server) ListenAndServe() error {
+	return s.engine.ListenAndServe()
+}
