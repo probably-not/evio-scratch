@@ -74,9 +74,10 @@ func parseContentLength(clen []byte) (int, error) {
 		return -1, errBadRequest
 	}
 
-	// Start at the highest order of magnitude,
+	// Start at the highest order of magnitude
+	zeroes := len(clen) - 1
 	length := 0
-	for i := len(clen) - 1; i >= 0; i-- {
+	for i := 0; i < len(clen); i++ {
 		// Error possibilities
 		if clen[i] < '0' || clen[i] > '9' {
 			return -1, errBadRequest
@@ -89,7 +90,12 @@ func parseContentLength(clen []byte) (int, error) {
 		}
 
 		// Add the magnitude to the length
-		length += v * i
+		if zeroes == 0 {
+			length += v
+		} else {
+			length += v * (zeroes * 10)
+		}
+		zeroes--
 	}
 
 	return length, nil
