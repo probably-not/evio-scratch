@@ -79,8 +79,7 @@ func main() {
 
 func testServer(reqs int) error {
 	for i := 0; i < reqs; i++ {
-		j := i
-		body := fmt.Sprintf(`{"req": %d}`, j)
+		body := fmt.Sprintf(`{"req": %d}`, i)
 		resp, err := http.Post("http://127.0.0.1:8080/echo", "application/json", bytes.NewReader([]byte(body)))
 		if err != nil {
 			return err
