@@ -62,6 +62,9 @@ func main() {
 		}
 	}()
 
+	// Sleep for 1 second to ensure the server has started up
+	time.Sleep(time.Second)
+
 	testServer(10)
 
 	<-ctx.Done()
@@ -78,6 +81,7 @@ func main() {
 }
 
 func testServer(reqs int) error {
+	fmt.Println("Starting server tests")
 	for i := 0; i < reqs; i++ {
 		body := fmt.Sprintf(`{"req": %d}`, i)
 		resp, err := http.Post("http://127.0.0.1:8080/echo", "application/json", bytes.NewReader([]byte(body)))
