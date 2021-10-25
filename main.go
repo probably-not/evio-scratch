@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sync"
 	"time"
 
 	cancellation "github.com/probably-not/server-scratch/internal/cancellation"
@@ -94,24 +95,37 @@ func main() {
 
 func testServer(reqs int, endpoint string) error {
 	fmt.Println("Starting server tests for", endpoint)
+	url := "http://" + path.Join("127.0.0.1:8080/", endpoint)
+
+	wg := sync.WaitGroup{}
+	wg.Add(reqs)
+
 	for i := 0; i < reqs; i++ {
-		body := fmt.Sprintf(`{"req": %d}`, i)
-		resp, err := http.Post("http://"+path.Join("127.0.0.1:8080/", endpoint), "application/json", bytes.NewReader([]byte(body)))
-		if err != nil {
-			return err
-		}
+		time.Sleep(time.Millisecond * 200)
+		go func(j int) {
+			defer wg.Done()
 
-		r, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
+			body := fmt.Sprintf(`{"req": %d}`, j)
+			resp, err := http.Post(url, "application/json", bytes.NewReader([]byte(body)))
+			if err != nil {
+				fmt.Printf("error POST-ing for request %d. Error: %v\n", j, err)
+				return
+			}
 
-		if !bytes.Equal([]byte(body), r) {
-			fmt.Println("Received unequal bytes!!!")
-		}
-		fmt.Println("Sent:", body, "Received:", string(r))
-		fmt.Println("Headers:", resp.Header)
+			r, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Printf("error reading response body for request %d. Error: %v\n", j, err)
+				return
+			}
+
+			if !bytes.Equal([]byte(body), r) {
+				fmt.Println("Received unequal bytes!!! On request", j)
+			}
+			fmt.Println("Sent:", body, "Received:", string(r), "Headers:", resp.Header)
+		}(i)
 	}
+
+	wg.Wait()
 
 	return nil
 }
