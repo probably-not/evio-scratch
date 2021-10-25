@@ -19,6 +19,6 @@ func Sleep(w http.ResponseWriter, r *http.Request) {
 	sleepTime := time.Second * time.Duration(rand.Intn(30))
 	<-time.After(sleepTime)
 
-	w.Header()["x-sleep-time"] = []string{sleepTime.String()}
+	w.Header().Set("x-sleep-time", sleepTime.String())
 	w.Write(b)
 }
