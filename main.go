@@ -50,6 +50,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", internalHttp.Echo)
+	mux.HandleFunc("/sleep", internalHttp.Sleep)
 
 	server, err := loop.NewServer(ctx, engineType, port, loops, mux)
 	if err != nil {
