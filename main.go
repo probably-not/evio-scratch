@@ -79,6 +79,7 @@ func main() {
 		fmt.Println("Error in testing sleep endpoint")
 		panic(err)
 	}
+	fmt.Println("Completed testing the server, waiting for signal")
 
 	<-ctx.Done()
 	fmt.Println("Received exit signal, waiting 5 seconds to close gracefully")
