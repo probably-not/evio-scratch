@@ -73,7 +73,7 @@ func main() {
 		fmt.Println("Error in testing echo endpoint")
 		panic(err)
 	}
-	err = testServer(10, "/sleep")
+	err = testServer(5, "/sleep")
 	if err != nil {
 		fmt.Println("Error in testing sleep endpoint")
 		panic(err)

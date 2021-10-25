@@ -16,7 +16,7 @@ func Sleep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sleepTime := time.Second * time.Duration(rand.Intn(5))
+	sleepTime := time.Second * time.Duration(rand.Intn(30))
 	<-time.After(sleepTime)
 
 	w.Header().Set("x-sleep-time", sleepTime.String())
