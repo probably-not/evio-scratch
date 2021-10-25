@@ -11,21 +11,95 @@ import (
 /*
 ----------------------------------------------------------------------------------------------------
 Testing and Benchmarking IsRequestComplete(data []byte) (bool, error)
+
+The example request to be parsed is very simple and looks like this:
+```
+POST /echo HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Go-http-client/1.1
+Content-Length: 10
+Content-Type: application/json
+Accept-Encoding: gzip
+
+{"req": 0}
+```
 ----------------------------------------------------------------------------------------------------
 */
 
-// TODO: Tests!
 func TestParser_IsRequestComplete(t *testing.T) {
 	testCases := []struct {
-		desc string
+		expectedErr error
+		desc        string
+		input       []byte
+		expected    bool
+		wantErr     bool
 	}{
 		{
-			desc: "",
+			desc:        "incomplete headers",
+			input:       []byte("POST /echo HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Go-http-client/1.1\r\n"),
+			expected:    false,
+			wantErr:     false,
+			expectedErr: nil,
+		},
+		{
+			desc:        "complete headers empty body",
+			input:       []byte("POST /echo HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Go-http-client/1.1\r\nAccept-Encoding: gzip\r\n\r\n"),
+			expected:    true,
+			wantErr:     false,
+			expectedErr: nil,
+		},
+		{
+			desc:        "complete headers non-empty body no content length",
+			input:       []byte("POST /echo HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Go-http-client/1.1\r\nAccept-Encoding: gzip\r\n\r\n{\"req\": 0}"),
+			expected:    false,
+			wantErr:     true,
+			expectedErr: errBadRequest,
+		},
+		{
+			desc:        "complete headers with content length no body yet",
+			input:       []byte("POST /echo HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Go-http-client/1.1\r\nContent-Length: 10\r\nContent-Type: application/json\r\nAccept-Encoding: gzip\r\n\r\n"),
+			expected:    false,
+			wantErr:     false,
+			expectedErr: nil,
+		},
+		{
+			desc:        "complete headers with content length and incomplete body",
+			input:       []byte("POST /echo HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Go-http-client/1.1\r\nContent-Length: 10\r\nContent-Type: application/json\r\nAccept-Encoding: gzip\r\n\r\n{\"req\": "),
+			expected:    false,
+			wantErr:     false,
+			expectedErr: nil,
+		},
+		{
+			desc:        "complete headers with content length and complete body",
+			input:       []byte("POST /echo HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Go-http-client/1.1\r\nContent-Length: 10\r\nContent-Type: application/json\r\nAccept-Encoding: gzip\r\n\r\n{\"req\": 0}"),
+			expected:    true,
+			wantErr:     false,
+			expectedErr: nil,
+		},
+		{
+			desc:        "complete headers with bad content length",
+			input:       []byte("POST /echo HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Go-http-client/1.1\r\nContent-Length: 123abc\r\nContent-Type: application/json\r\nAccept-Encoding: gzip\r\n\r\n{\"req\": 0}"),
+			expected:    false,
+			wantErr:     true,
+			expectedErr: errBadRequest,
 		},
 	}
 	for _, tC := range testCases {
-		t.Run(tC.desc, func(t *testing.T) {
+		t.Run(tC.desc, func(subT *testing.T) {
+			got, err := IsRequestComplete(tC.input)
+			if (err != nil) != tC.wantErr {
+				subT.Errorf("IsRequestComplete() error = %v, wantErr %v", err, tC.wantErr)
+				return
+			}
 
+			if err != nil && err != tC.expectedErr {
+				subT.Errorf("IsRequestComplete() error type mismatch expecting %s and got %s", tC.expectedErr.Error(), err.Error())
+				return
+			}
+
+			if !reflect.DeepEqual(got, tC.expected) {
+				subT.Errorf("IsRequestComplete() got = %v, want %v", got, tC.expected)
+			}
 		})
 	}
 }
