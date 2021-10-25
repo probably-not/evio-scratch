@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -20,5 +19,6 @@ func Sleep(w http.ResponseWriter, r *http.Request) {
 	sleepTime := time.Second * time.Duration(rand.Intn(30))
 	<-time.After(sleepTime)
 
-	w.Write([]byte(fmt.Sprintf(`{"sleep_time": "%v", "original_body": %s}`, sleepTime, string(b))))
+	w.Header()["x-sleep-time"] = []string{sleepTime.String()}
+	w.Write(b)
 }
