@@ -69,6 +69,10 @@ func IsRequestComplete(data []byte) (bool, error) {
 }
 
 func parseContentLength(clen []byte) (int64, error) {
+	if len(clen) == 0 {
+		return 0, nil
+	}
+
 	// If we are lower than 0 or greater than 9, then we aren't an integer.
 	if clen[0] < '0' || clen[0] > '9' {
 		return -1, errBadRequest
@@ -121,7 +125,7 @@ var pow10LookupTable = [...]int64{
 	1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18,
 }
 
-var byteToIntSlice = []int64{
+var byteToIntSlice = [...]int64{
 	'0': 0,
 	'1': 1,
 	'2': 2,
