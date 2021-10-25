@@ -105,6 +105,25 @@ func TestParser_IsRequestComplete(t *testing.T) {
 	}
 }
 
+var (
+	complete    bool
+	completeErr error
+)
+
+// Initial Benchmark Scores to beat:
+// BenchmarkParser_IsRequestComplete-16    	13264154	        87.29 ns/op	       0 B/op	       0 allocs/op
+func BenchmarkParser_IsRequestComplete(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		c, err := IsRequestComplete(isRequestCompleteTestCases[i%len(isRequestCompleteTestCases)].input)
+		if err != nil {
+			completeErr = err
+		}
+		complete = c
+	}
+}
+
 /*
 ----------------------------------------------------------------------------------------------------
 Testing and Benchmarking parseContentLength(clen []byte) (int64, error)
