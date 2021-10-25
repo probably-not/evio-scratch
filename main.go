@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	cancellation "github.com/probably-not/server-scratch/internal/cancellation"
@@ -67,7 +68,8 @@ func main() {
 	// Sleep for 1 second to ensure the server has started up
 	time.Sleep(time.Second)
 
-	testServer(10)
+	testServer(10, "/echo")
+	testServer(10, "/sleep")
 
 	<-ctx.Done()
 	fmt.Println("Received exit signal, waiting 5 seconds to close gracefully")
@@ -82,11 +84,11 @@ func main() {
 	}
 }
 
-func testServer(reqs int) error {
-	fmt.Println("Starting server tests")
+func testServer(reqs int, endpoint string) error {
+	fmt.Println("Starting server tests for", endpoint)
 	for i := 0; i < reqs; i++ {
 		body := fmt.Sprintf(`{"req": %d}`, i)
-		resp, err := http.Post("http://127.0.0.1:8080/echo", "application/json", bytes.NewReader([]byte(body)))
+		resp, err := http.Post(path.Join("http://127.0.0.1:8080/", endpoint), "application/json", bytes.NewReader([]byte(body)))
 		if err != nil {
 			return err
 		}
