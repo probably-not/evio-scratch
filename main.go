@@ -68,8 +68,16 @@ func main() {
 	// Sleep for 1 second to ensure the server has started up
 	time.Sleep(time.Second)
 
-	testServer(10, "/echo")
-	testServer(10, "/sleep")
+	err = testServer(10, "/echo")
+	if err != nil {
+		fmt.Println("Error in testing echo endpoint")
+		panic(err)
+	}
+	err = testServer(10, "/sleep")
+	if err != nil {
+		fmt.Println("Error in testing sleep endpoint")
+		panic(err)
+	}
 
 	<-ctx.Done()
 	fmt.Println("Received exit signal, waiting 5 seconds to close gracefully")
@@ -88,7 +96,7 @@ func testServer(reqs int, endpoint string) error {
 	fmt.Println("Starting server tests for", endpoint)
 	for i := 0; i < reqs; i++ {
 		body := fmt.Sprintf(`{"req": %d}`, i)
-		resp, err := http.Post(path.Join("http://127.0.0.1:8080/", endpoint), "application/json", bytes.NewReader([]byte(body)))
+		resp, err := http.Post("http://"+path.Join("127.0.0.1:8080/", endpoint), "application/json", bytes.NewReader([]byte(body)))
 		if err != nil {
 			return err
 		}
@@ -102,6 +110,7 @@ func testServer(reqs int, endpoint string) error {
 			fmt.Println("Received unequal bytes!!!")
 		}
 		fmt.Println("Sent:", body, "Received:", string(r))
+		fmt.Println("Headers:", resp.Header)
 	}
 
 	return nil
