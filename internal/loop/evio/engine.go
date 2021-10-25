@@ -103,7 +103,7 @@ func NewEngine(ctx context.Context, loops, port int, httpHandler http.Handler) *
 
 		select {
 		case <-ctx.Done():
-			return nil, evio.Close
+			return buf.Bytes(), evio.Close
 		default:
 			// Reset the connection context to an empty input stream once we have completed a full request in order to
 			// ensure that the next request starts empty.

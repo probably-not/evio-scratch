@@ -114,7 +114,7 @@ func (e *Engine) React(in []byte, c gnet.Conn) ([]byte, gnet.Action) {
 
 	select {
 	case <-e.ctx.Done():
-		return nil, gnet.Close
+		return buf.Bytes(), gnet.Close
 	default:
 		// Reset the connection context to an empty input stream once we have completed a full request in order to
 		// ensure that the next request starts empty.
