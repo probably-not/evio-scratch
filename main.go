@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
@@ -31,6 +32,7 @@ func init() {
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.IntVar(&loops, "loops", 1, "num loops")
 	flag.BoolVar(&help, "help", false, "show help message")
+	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
