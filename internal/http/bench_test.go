@@ -10,8 +10,7 @@ var (
 	completeErr error
 )
 
-// Initial Benchmark Scores to beat:
-// BenchmarkParser_IsRequestComplete-16    	13264154	        87.29 ns/op	       0 B/op	       0 allocs/op
+// BenchmarkParser_IsRequestComplete-10    	15606697	        77.08 ns/op	       0 B/op	       0 allocs/op
 func BenchmarkParser_IsRequestComplete(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -30,7 +29,7 @@ var (
 )
 
 // Benchmark to test strconv vs a custom parsing function for parsing out content lengths.
-// BenchmarkParser_Strconv-16    	43783546	        28.33 ns/op	       7 B/op	       0 allocs/op
+// BenchmarkParser_Strconv-10    	74064654	        16.22 ns/op	       7 B/op	       0 allocs/op
 func BenchmarkParser_Strconv(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -44,13 +43,12 @@ func BenchmarkParser_Strconv(b *testing.B) {
 }
 
 // Benchmarks to find best Table structure:
-// BenchmarkParser_ParseContentLength-16    	74605522	        14.63 ns/op	       0 B/op	       0 allocs/op (switch table)
-// BenchmarkParser_ParseContentLength-16    	76251918	        13.59 ns/op	       0 B/op	       0 allocs/op (slice table)
-// BenchmarkParser_ParseContentLength-16    	34651278	        32.38 ns/op	       0 B/op	       0 allocs/op (map table)
+// BenchmarkParser_ParseContentLength-10    	125843733	         9.409 ns/op	       0 B/op	       0 allocs/op (switch table)
+// BenchmarkParser_ParseContentLength-10    	158928097	         7.401 ns/op	       0 B/op	       0 allocs/op (slice table)
 // --------------------------------------------------------------------------------------------------------------------------
 // Benchmarks of math.Pow vs Pow lookup table:
-// BenchmarkParser_ParseContentLength-16    	82135372	        13.56 ns/op	       0 B/op	       0 allocs/op (math.Pow)
-// BenchmarkParser_ParseContentLength-16    	91160745	        12.85 ns/op	       0 B/op	       0 allocs/op (table)
+// BenchmarkParser_ParseContentLength-10    	155882090	         7.545 ns/op	       0 B/op	       0 allocs/op (math.Pow)
+// BenchmarkParser_ParseContentLength-10    	157663156	         7.404 ns/op	       0 B/op	       0 allocs/op (table)
 func BenchmarkParser_ParseContentLength(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
