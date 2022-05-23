@@ -1,0 +1,109 @@
+name: CI/CD Pipeline
+
+# Only run on the master branch or on open PRs
+on: [push]
+
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17"
+      - name: Go Mod Tidy
+        run: |
+          go mod tidy
+          diff=$(git diff --color -- go.mod)
+
+          if [[ -z "${diff}" ]]; then
+          printf "\e[32m%s\e[0m\n" \
+            "Go module is tidy!"
+          else
+            echo "${diff}"
+            printf "\n\e[31m%s\e[0m\n\n%s\n" \
+              "Go module is untidy!" \
+              'Run `go mod tidy` to update it.'
+            exit 1
+          fi
+  staticcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17"
+      - uses: dominikh/staticcheck-action@v1.2.0
+        with:
+          install-go: false
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17"
+      - name: Install Dependencies
+        run: go mod download
+      - name: Go Vet
+        run: go vet $(go list ./...)
+  fieldalignment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17"
+      - name: Go Field Alignment
+        run: |
+          go get -u golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
+          fieldalignment $(go list ./...)
+          exit $?
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [1.17.x, 1.18.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Install Dependencies
+        run: go mod download
+      - name: Go Test
+        run: go test -race -shuffle=on $(go list ./...)
+  build:
+    if: github.ref == 'refs/heads/main' # only run build on main branch
+    needs: [tidy, staticcheck, vet, fieldalignment, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        id: buildx
+        with:
+          install: true
+        uses: docker/setup-buildx-action@v2
+      - name: Build Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: false
+          build-args: |
+            SERVICE_NAME=${{ matrix.service }}
+          tags: docker.algovest.dev/${{ matrix.service }}:latest,docker.algovest.dev/${{ matrix.service }}:${{ github.sha }}
+          platforms: linux/amd64,linux/arm64
