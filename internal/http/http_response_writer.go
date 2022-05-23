@@ -31,6 +31,10 @@ func (rw *ResponseWriter) Header() http.Header {
 }
 
 func (rw *ResponseWriter) Write(data []byte) (int, error) {
+	if rw == nil {
+		return 0, nil
+	}
+
 	if rw.StatusCode == 0 {
 		rw.WriteHeader(200)
 	}
@@ -40,10 +44,18 @@ func (rw *ResponseWriter) Write(data []byte) (int, error) {
 }
 
 func (rw *ResponseWriter) WriteHeader(statusCode int) {
+	if rw == nil {
+		return
+	}
+
 	rw.StatusCode = statusCode
 }
 
 func (rw *ResponseWriter) WriteToBuf(w io.Writer) error {
+	if rw == nil {
+		return nil
+	}
+
 	rw.Body = ioutil.NopCloser(bytes.NewReader(rw.buf))
 	rw.ContentLength = int64(len(rw.buf))
 	return rw.Response.Write(w)
