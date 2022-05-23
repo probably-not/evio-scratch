@@ -140,6 +140,7 @@ var byteToIntSlice = [...]int64{
 
 // Looks like the lookup by slice is approximately 1ns fast constantly, so we will use the `byteToIntSlice` table.
 // This will need to be continuously benchmarked to ensure that if it changes we update the code.
+//lint:ignore U1000 This is here for now so we can keep benchmarking switch cases vs. the slice index functionality in case it improves in future implementations.
 func byteToIntJump(b byte) int64 {
 	switch b {
 	case '0':
