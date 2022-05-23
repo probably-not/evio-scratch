@@ -8,7 +8,7 @@ RUN go mod download && go get -d -v ./...
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -tags netgo,osusergo -ldflags '-extldflags "-static"' -o /go/bin/server-scratch ./cmd/server-scratch
+RUN CGO_ENABLED=0 GOOS=linux go build -tags netgo,osusergo -ldflags '-extldflags "-static"' -o /go/bin/server-scratch
 
 # final stage
 FROM gcr.io/distroless/static:latest
