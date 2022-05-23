@@ -105,5 +105,5 @@ jobs:
           push: false
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
-          tags: docker.algovest.dev/${{ matrix.service }}:latest,docker.algovest.dev/${{ matrix.service }}:${{ github.sha }}
+          tags: server-scratch:latest,server-scratch:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
